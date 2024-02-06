@@ -7,8 +7,7 @@ import {
   GraphQLString,
 } from "graphql";
 
-// import { clients } from "../sampleData"
-const { clients } = require("../sampleData");
+import User from "../model/User";
 
 const UserType = new GraphQLObjectType({
   name: "User",
@@ -26,14 +25,34 @@ const RootQuery = new GraphQLObjectType({
     users: {
       type: new GraphQLList(UserType),
       resolve(parent, args) {
-        return clients;
+        return User.find();
       },
     },
     user: {
       type: UserType,
       args: { id: { type: GraphQLID } },
       resolve(parent, args) {
-        return clients.find((client: any) => client?.id === args.id);
+        return User.findById(args.id);
+      },
+    },
+  },
+});
+
+const mutation = new GraphQLObjectType({
+  name: "Mutation",
+  fields: {
+    addUser: {
+      type: UserType,
+      args: {
+        name: { type: GraphQLNonNull(GraphQLString) },
+        email: { type: GraphQLNonNull(GraphQLString) },
+      },
+      resolve(parent, args) {
+        const user = new User({
+          name: args.name,
+          email: args.name,
+        });
+        return user.save();
       },
     },
   },
@@ -41,4 +60,5 @@ const RootQuery = new GraphQLObjectType({
 
 module.exports = new GraphQLSchema({
   query: RootQuery,
+  mutation,
 });
